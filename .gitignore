@@ -1,0 +1,44 @@
+# === Java / Spring Boot ===
+/target
+!.mvn/wrapper/maven-wrapper.jar
+*.log
+*.tmp
+*.out
+*.class
+*.jar
+*.war
+*.ear
+
+# === Maven ===
+.mvn/wrapper/maven-wrapper.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# === Gradle (if you ever use it) ===
+.gradle
+build/
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# === Eclipse ===
+.project
+.classpath
+.settings/
+bin/
+
+# === VS Code ===
+.vscode/
+
+# === Node / React ===
+/node_modules
+/.pnp
+.pnp.js
+*.cache
+*.tsbuildinfo
+dist/
+build/
+npm-debug.
