@@ -2,6 +2,7 @@ package com.sketchbook.sketchbook_backend.service;
 
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,14 +14,16 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public User createUser(String username, String email, String password) {
+    public User createUser(String username, String email, String rawPassword) {
 
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
@@ -30,10 +33,12 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists");
         }
 
+        String HashedPassword = passwordEncoder.encode(rawPassword);
+
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPasswordHash(password);
+        user.setPasswordHash(HashedPassword);
         return userRepository.save(user);
     }
 
@@ -52,5 +57,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public boolean checkPassword(String rawPassword, String hashedPassword) {
+        return passwordEncoder.matches(rawPassword, hashedPassword);
     }
 }
