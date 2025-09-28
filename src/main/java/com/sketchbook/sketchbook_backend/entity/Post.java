@@ -16,7 +16,6 @@ public class Post {
     @GeneratedValue
     private UUID id;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
@@ -25,7 +24,7 @@ public class Post {
     private String title;
 
     @Column(nullable = false, columnDefinition = "jsonb")
-    private String pixelData; // JSON string containing pallete + pixels for editing
+    private String pixelData; // JSON string containing pallet + pixels for editing
 
     @Column(length = 255)
     private String imageUrl; // PNG URL for display
