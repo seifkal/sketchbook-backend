@@ -24,7 +24,7 @@ public class PostService {
     }
 
     @Transactional
-    public Post createPost(UUID userId, String title, String imageUrl) {
+    public Post createPost(UUID userId, String title, String pixelData) {
 
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -32,7 +32,7 @@ public class PostService {
         Post post = new Post();
         post.setAuthor(author);
         post.setTitle(title);
-        post.setImageUrl(imageUrl);
+        post.setPixelData(pixelData);
 
         return postRepository.save(post);
 

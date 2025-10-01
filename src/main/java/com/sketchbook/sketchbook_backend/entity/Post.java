@@ -23,8 +23,9 @@ public class Post {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "jsonb")
-    private String pixelData; // JSON string containing pallet + pixels for editing
+    @Column(nullable = false)
+    private String pixelData; // raw pixel data in JSON format
+
 
     @Column(length = 255)
     private String imageUrl; // PNG URL for display
