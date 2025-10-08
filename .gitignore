@@ -8,8 +8,9 @@
 *.jar
 *.war
 *.ear
+.env
 
-# === Maven ===
+# === Maven ===s
 .mvn/wrapper/maven-wrapper.properties
 .mvn/wrapper/maven-wrapper.jar
 
