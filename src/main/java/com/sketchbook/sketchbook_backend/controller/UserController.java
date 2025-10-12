@@ -27,13 +27,19 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserDTO> getUserbyId(@PathVariable UUID id){
+    public ResponseEntity<UserDTO> getUserbyId(@PathVariable UUID id, Authentication authentication){
         User user = userService.getUserById(id);
+        String loggedInEmail = authentication.getName();
+
+        if(!user.getEmail().equals(loggedInEmail)){
+            throw new RuntimeException("You can only get your own profile");
+        }
+
         return ResponseEntity.ok(toDTO(user));
     }
 
     @GetMapping("/username/{username}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("#username == authentication.name")
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username){
         User user = userService.getUserByUsername(username);
         return ResponseEntity.ok(toDTO(user));
