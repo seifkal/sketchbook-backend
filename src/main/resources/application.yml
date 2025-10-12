@@ -1,1 +1,4 @@
-spring.application.name=sketchbook-backend
+spring:
+  application:
+    name: sketchbook-backend
+
