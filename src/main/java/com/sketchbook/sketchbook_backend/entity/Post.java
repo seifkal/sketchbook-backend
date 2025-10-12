@@ -26,7 +26,6 @@ public class Post {
     @Column(nullable = false)
     private String pixelData; // raw pixel data in JSON format
 
-
     @Column(length = 255)
     private String imageUrl; // PNG URL for display
 

@@ -7,11 +7,11 @@ import com.sketchbook.sketchbook_backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 @RestController
@@ -25,34 +25,18 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserRequestDTO request) {
-        User createdUser = userService.createUser(
-                request.getUsername(),
-                request.getEmail(),
-                request.getPassword());
-        return ResponseEntity.ok(toDTO(createdUser));
-    }
-
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDTO> getUserbyId(@PathVariable UUID id){
         User user = userService.getUserById(id);
         return ResponseEntity.ok(toDTO(user));
     }
 
     @GetMapping("/username/{username}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username){
         User user = userService.getUserByUsername(username);
         return ResponseEntity.ok(toDTO(user));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers(){
-        List<UserDTO> users = userService.getAllUsers()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(users);
     }
 
     private UserDTO toDTO(User user){

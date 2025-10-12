@@ -2,7 +2,7 @@ package com.sketchbook.sketchbook_backend.service;
 
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,37 +14,35 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public User createUser(String username, String email, String rawPassword) {
-
-        if (userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username already exists");
-        }
-
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-
-        String HashedPassword = passwordEncoder.encode(rawPassword);
+    public User registerUser(String username, String email, String password, PasswordEncoder passwordEncoder) {
+        if (userRepository.existsByUsername(username))
+            throw new RuntimeException("Username already taken");
+        if (userRepository.existsByEmail(email))
+            throw new RuntimeException("Email already registered");
 
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPasswordHash(HashedPassword);
+        user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
@@ -59,7 +57,13 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public boolean checkPassword(String rawPassword, String hashedPassword) {
-        return passwordEncoder.matches(rawPassword, hashedPassword);
+    @Transactional
+    public User updateAvatar(UUID id, String loggedInEmail, String newAvatarUrl) {
+        User user = getUserById(id);
+        if (!user.getEmail().equals(loggedInEmail))
+            throw new RuntimeException("You can only update your own profile");
+
+        user.setAvatarUrl(newAvatarUrl);
+        return userRepository.save(user);
     }
 }

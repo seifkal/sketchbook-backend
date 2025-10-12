@@ -15,6 +15,4 @@ public class PostRequestDTO {
 
     @NotBlank(message = "Pixel data cannot be empty")
     private String pixelData;
-
-    private UUID authorId;
 }
