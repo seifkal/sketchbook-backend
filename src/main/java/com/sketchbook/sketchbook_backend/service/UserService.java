@@ -1,5 +1,6 @@
 package com.sketchbook.sketchbook_backend.service;
 
+import com.sketchbook.sketchbook_backend.dto.UserUpdateDTO;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,12 +59,57 @@ public class UserService {
     }
 
     @Transactional
-    public User updateAvatar(UUID id, String loggedInEmail, String newAvatarUrl) {
-        User user = getUserById(id);
-        if (!user.getEmail().equals(loggedInEmail))
-            throw new RuntimeException("You can only update your own profile");
+    public User updateUser(String loggedInEmail,
+                           UserUpdateDTO request,
+                           PasswordEncoder passwordEncoder) {
 
-        user.setAvatarUrl(newAvatarUrl);
+        User user = getUserByEmail(loggedInEmail);
+
+        if (!user.getEmail().equals(loggedInEmail)) {
+            throw new RuntimeException("You can only update your own profile");
+        }
+
+        if (request.getUsername() != null && !request.getUsername().isBlank()
+                && !request.getUsername().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(request.getUsername())) {
+                throw new RuntimeException("Username already taken");
+            }
+            user.setUsername(request.getUsername());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()
+                && !request.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already registered");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        if (request.getAvatarUrl() != null && !request.getAvatarUrl().isBlank()) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+
+        String newPassword = request.getNewPassword();
+        String oldPassword = request.getOldPassword();
+
+        if (newPassword != null && !newPassword.isBlank()) {
+
+            if (oldPassword == null || oldPassword.isBlank()) {
+                throw new RuntimeException("Old password is required to change password");
+            }
+
+            if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+                throw new RuntimeException("Old password is incorrect");
+            }
+
+            if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+                throw new RuntimeException("New password cannot be the same as old password");
+            }
+
+            user.setPasswordHash(passwordEncoder.encode(newPassword));
+        }
+
         return userRepository.save(user);
     }
+
 }
