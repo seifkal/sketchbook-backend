@@ -22,12 +22,13 @@ public class UserService {
     }
 
     @Transactional
-    public User registerUser(String username, String email, String password, PasswordEncoder passwordEncoder) {
+    public User registerUser(String username, String email, String password, String confirmPassword ,PasswordEncoder passwordEncoder) {
         if (userRepository.existsByUsername(username))
             throw new RuntimeException("Username already taken");
         if (userRepository.existsByEmail(email))
             throw new RuntimeException("Email already registered");
-
+        if(!password.equals(confirmPassword))
+            throw new RuntimeException("Passwords do not match");
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);

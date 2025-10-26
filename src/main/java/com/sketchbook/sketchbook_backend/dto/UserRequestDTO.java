@@ -19,4 +19,8 @@ public class UserRequestDTO {
     @NotBlank(message = "Password is required")
     @Size(min = 8,max = 50, message = "Password must be at least 8 characters long")
     private String password;
+
+    @NotBlank(message = "Password confirmation is required")
+    @Size(min = 8,max = 50, message = "Password must be at least 8 characters long")
+    private String confirmPassword;
 }

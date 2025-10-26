@@ -29,7 +29,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthDTO> register(@Valid @RequestBody UserRequestDTO request) {
-        User user = userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword(), passwordEncoder);
+        User user = userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword(), request.getConfirmPassword(),passwordEncoder);
         String token = jwtService.generateToken(user.getEmail());
         return ResponseEntity.ok(new AuthDTO(token));
     }
