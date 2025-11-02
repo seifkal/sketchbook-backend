@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
-    List<Comment> findByPostOrderByCreatedAtDesc(Post post); // Find comments for a post, newest first
+    List<Comment> findAllByPostOrderByCreatedAtDesc(Post post);
+
+    long countByPost(Post post);
 
 }

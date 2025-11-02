@@ -7,9 +7,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "likes", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "post_id"})
-})
+@Table(name = "likes", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "post_id"})})
 @Data
 public class Like {
 
@@ -27,6 +25,7 @@ public class Like {
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
     public Like() {
         this.createdAt = Instant.now();
     }

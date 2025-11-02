@@ -1,11 +1,14 @@
 package com.sketchbook.sketchbook_backend.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "comments")
+@Data
 public class Comment {
 
     @Id
@@ -14,7 +17,7 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User author;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)

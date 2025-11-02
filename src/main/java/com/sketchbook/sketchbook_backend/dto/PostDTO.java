@@ -1,14 +1,24 @@
 package com.sketchbook.sketchbook_backend.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 import java.util.UUID;
 
-public record PostDTO(
-        UUID id,
-        String title,
-        String imageUrl,
-        UUID authorId,
-        String authorUsername,
-        Instant createdAt
-) {
+@Getter
+@Setter
+@AllArgsConstructor
+public class PostDTO {
+    private UUID id;
+    private String title;
+    private String imageUrl;
+    private UUID authorId;
+    private String authorUsername;
+    private Instant createdAt;
+
+    private long likeCount;
+    private boolean isLiked;
+    private Long commentCount;
 }
