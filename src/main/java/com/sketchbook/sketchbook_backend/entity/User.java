@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -35,4 +37,17 @@ public class User {
     public User() {
         this.createdAt = Instant.now();
     }
+
+    // Users this user follows
+    @ManyToMany
+    @JoinTable(
+            name = "user_follows",
+            joinColumns = @JoinColumn(name = "follower_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id")
+    )
+    private Set<User> following = new HashSet<>();
+
+    // Users who follow this user
+    @ManyToMany(mappedBy = "following")
+    private Set<User> followers = new HashSet<>();
 }
