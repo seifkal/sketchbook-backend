@@ -3,10 +3,12 @@ package com.sketchbook.sketchbook_backend.service;
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.PostRepository;
+import com.sketchbook.sketchbook_backend.util.ImageGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -16,20 +18,29 @@ import java.util.UUID;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final ImageGenerator imageGenerator;
 
     @Autowired
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, ImageGenerator imageGenerator) {
         this.postRepository = postRepository;
+        this.imageGenerator = imageGenerator;
     }
 
-    public Post createPostForUser(String title, String pixelData, String userEmail, UserService userService) {
+    public Post createPostForUser(String title, String pixelDataJSON, String userEmail, UserService userService) {
         User user = userService.getUserByEmail(userEmail);
 
         Post post = new Post();
         post.setTitle(title);
-        post.setPixelData(pixelData);
+        post.setPixelData(pixelDataJSON);
         post.setUser(user);
         post.setCreatedAt(Instant.now());
+
+        try{
+            String url = imageGenerator.generateImage(pixelDataJSON);
+            post.setImageUrl(url);
+        } catch (IOException e){
+            throw new RuntimeException("Failed to generate image");
+        }
 
         return postRepository.save(post);
     }

@@ -1,5 +1,7 @@
 package com.sketchbook.sketchbook_backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sketchbook.sketchbook_backend.dto.CommentDTO;
 import com.sketchbook.sketchbook_backend.dto.CommentRequestDTO;
 import com.sketchbook.sketchbook_backend.dto.PostDTO;
@@ -11,6 +13,7 @@ import com.sketchbook.sketchbook_backend.service.CommentService;
 import com.sketchbook.sketchbook_backend.service.LikeService;
 import com.sketchbook.sketchbook_backend.service.PostService;
 import com.sketchbook.sketchbook_backend.service.UserService;
+import com.sketchbook.sketchbook_backend.util.ImageGenerator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,13 +36,24 @@ public class PostController {
     private final UserService userService;
     private final LikeService likeService;
     private final CommentService commentService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping
     public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostRequestDTO postRequest,
                                               Authentication authentication) {
+
+        System.out.println("📩 Received title: " + postRequest.getTitle());
+        System.out.println("📩 Received pixelData: " + postRequest.getPixelData());
+
         String userEmail = authentication.getName();
-        Post post = postService.createPostForUser(postRequest.getTitle(), postRequest.getPixelData(), userEmail, userService);
-        return ResponseEntity.ok(toDTO(post, authentication));
+        try{
+            String pixelDataJson = objectMapper.writeValueAsString(postRequest.getPixelData());
+            Post post = postService.createPostForUser(postRequest.getTitle(), pixelDataJson, userEmail, userService);
+
+            return ResponseEntity.ok(toDTO(post, authentication));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse pixel data");
+        }
     }
 
     @GetMapping
