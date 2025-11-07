@@ -3,7 +3,11 @@ package com.sketchbook.sketchbook_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.sql.SQLType;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +29,8 @@ public class Post {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Lob
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(nullable = false)
     private String pixelData; // raw pixel data in JSON format
 
