@@ -42,9 +42,6 @@ public class PostController {
     public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostRequestDTO postRequest,
                                               Authentication authentication) {
 
-        System.out.println("📩 Received title: " + postRequest.getTitle());
-        System.out.println("📩 Received pixelData: " + postRequest.getPixelData());
-
         String userEmail = authentication.getName();
         try{
             String pixelDataJson = objectMapper.writeValueAsString(postRequest.getPixelData());

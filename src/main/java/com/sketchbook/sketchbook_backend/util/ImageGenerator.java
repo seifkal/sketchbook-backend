@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +32,9 @@ public class ImageGenerator {
         // fill image with color values from pixel data array
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                image.setRGB(x, y, Integer.parseInt(pixels.get(y).get(x), 16));
+                String hex = pixels.get(y).get(x);
+                Color color = Color.decode(hex);
+                image.setRGB(x, y, color.getRGB());
             }
         }
 
