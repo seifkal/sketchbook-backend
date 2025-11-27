@@ -2,6 +2,7 @@ package com.sketchbook.sketchbook_backend.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.imgscalr.Scalr; // Import the new library
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,30 +23,32 @@ public class ImageGenerator {
     private String outputDir;
 
     public String generateImage(String pixelData) throws IOException {
+        // parse JSON array of pixel colors
         List<List<String>> pixels = objectMapper.readValue(pixelData, new TypeReference<>() {});
-
         int height = pixels.size();
         int width = pixels.get(0).size();
 
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-        // fill image with color values from pixel data array
+        // create raw 32x32 image
+        BufferedImage rawImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                String hex = pixels.get(y).get(x);
-                Color color = Color.decode(hex);
-                image.setRGB(x, y, color.getRGB());
+                // Convert Hex string (e.g., "#FF0000") to Color
+                rawImage.setRGB(x, y, Color.decode(pixels.get(y).get(x)).getRGB());
             }
         }
 
-        //create output directory if it doesnt exist
+
+        // scale image 8x (32x32 -> 256x256
+        BufferedImage scaledImage = Scalr.resize(rawImage, Scalr.Method.SPEED, width * 8);
+
+        // write to disk
         File dir = new File(outputDir);
         if (!dir.exists()) dir.mkdirs();
 
-        //generate random filename and save image to disk
         String filename = UUID.randomUUID() + ".png";
         File outputFile = new File(dir, filename);
-        ImageIO.write(image, "png", outputFile);
+
+        ImageIO.write(scaledImage, "png", outputFile);
 
         return filename;
     }
