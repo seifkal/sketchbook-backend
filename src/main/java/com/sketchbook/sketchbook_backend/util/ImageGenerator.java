@@ -38,8 +38,8 @@ public class ImageGenerator {
         }
 
 
-        // scale image 8x (32x32 -> 256x256
-        BufferedImage scaledImage = Scalr.resize(rawImage, Scalr.Method.SPEED, width * 8);
+        // scale image 8x (32x32 -> 512x512
+        BufferedImage scaledImage = Scalr.resize(rawImage, Scalr.Method.SPEED, width * 16);
 
         // write to disk
         File dir = new File(outputDir);
