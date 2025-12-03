@@ -30,7 +30,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthDTO> register(@Valid @RequestBody UserRequestDTO request) {
         User user = userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword(), request.getConfirmPassword(),passwordEncoder);
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new AuthDTO(token));
     }
 
@@ -41,7 +41,7 @@ public class AuthController {
         );
 
         User user = userService.getUserByEmail(request.getEmail());
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new AuthDTO(token));
     }
 
