@@ -4,6 +4,7 @@ import com.sketchbook.sketchbook_backend.dto.UserDTO;
 import com.sketchbook.sketchbook_backend.dto.UserRequestDTO;
 import com.sketchbook.sketchbook_backend.dto.UserUpdateDTO;
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.service.FollowService;
 import com.sketchbook.sketchbook_backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final FollowService followService;
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
@@ -53,11 +55,19 @@ public class UserController {
     }
 
     private UserDTO toDTO(User user){
+
+        long followerCount = followService.countFollowers(user.getId());
+
+        long followingCount = followService.countFollowing(user.getId());
+
         return new UserDTO(
                 user.getId(),
                 user.getUsername(),
-                user.getEmail(),
-                user.getAvatarUrl(),
+                user.getAvatarVariant(),
+                user.getAvatarColors(),
+                followerCount,
+                followingCount,
+                user.getDescription(),
                 user.getCreatedAt()
         );
     }

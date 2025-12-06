@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,7 +19,6 @@ public class User {
     @GeneratedValue
     private UUID id;
 
-
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
@@ -29,10 +29,16 @@ public class User {
     private String passwordHash;
 
     @Column(length = 255)
-    private String avatarUrl;
+    private String avatarVariant;
+
+    @ElementCollection
+    private List<String> avatarColors;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(length = 255)
+    private String description;
 
     public User() {
         this.createdAt = Instant.now();

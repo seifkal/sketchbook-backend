@@ -86,10 +86,6 @@ public class UserService {
             user.setEmail(request.getEmail());
         }
 
-        if (request.getAvatarUrl() != null && !request.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(request.getAvatarUrl());
-        }
-
         String newPassword = request.getNewPassword();
         String oldPassword = request.getOldPassword();
 
