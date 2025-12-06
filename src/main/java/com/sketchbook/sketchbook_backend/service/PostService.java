@@ -54,6 +54,11 @@ public class PostService {
         return postRepository.findAllByUserOrderByCreatedAtDesc(user);
     }
 
+    public List<Post> getAllPostsForUserId(UUID userId, UserService userService) {
+        User user = userService.getUserById(userId);
+        return postRepository.findAllByUserOrderByCreatedAtDesc(user);
+    }
+
     public Post getPostbyId(UUID postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));

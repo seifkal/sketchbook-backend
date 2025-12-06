@@ -73,6 +73,24 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<PostDTO>> getPostsById(
+            @PathVariable UUID userId,
+            Authentication authentication) {
+        List<PostDTO> posts = postService.getAllPostsForUserId(userId, userService)
+                .stream()
+                .map(post -> toDTO(post, authentication))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<PostDTO>> getMyPosts(Authentication authentication) {
+        User user = userService.getUserByEmail(authentication.getName());
+        UUID userId = user.getId();
+        return getPostsById(userId, authentication);
+    }
+
     @PostMapping("/{postId}/like")
     public ResponseEntity<Map<String, Object>> toggleLike(
             @PathVariable UUID postId,
