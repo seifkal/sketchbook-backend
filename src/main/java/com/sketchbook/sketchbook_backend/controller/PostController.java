@@ -62,7 +62,7 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/username/{username}")
     public ResponseEntity<List<PostDTO>> getPostsByUsername(
             @PathVariable String username,
             Authentication authentication) {
@@ -73,7 +73,7 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/id/{userId}")
     public ResponseEntity<List<PostDTO>> getPostsById(
             @PathVariable UUID userId,
             Authentication authentication) {
