@@ -6,6 +6,7 @@ import com.sketchbook.sketchbook_backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.swing.text.html.Option;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,4 +18,5 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
 
     boolean existsByPostIdAndUserId(UUID postId, UUID userId);
 
+    List<Like> findAllByUserOrderByCreatedAtDesc(User user);
 }

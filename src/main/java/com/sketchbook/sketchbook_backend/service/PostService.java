@@ -1,7 +1,9 @@
 package com.sketchbook.sketchbook_backend.service;
 
+import com.sketchbook.sketchbook_backend.entity.Like;
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.repository.LikeRepository;
 import com.sketchbook.sketchbook_backend.repository.PostRepository;
 import com.sketchbook.sketchbook_backend.util.ImageGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +21,13 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final ImageGenerator imageGenerator;
+    private final LikeRepository likeRepository;
 
     @Autowired
-    public PostService(PostRepository postRepository, ImageGenerator imageGenerator) {
+    public PostService(PostRepository postRepository, ImageGenerator imageGenerator, LikeRepository likeRepository) {
         this.postRepository = postRepository;
         this.imageGenerator = imageGenerator;
+        this.likeRepository = likeRepository;
     }
 
     public Post createPostForUser(String title, String pixelDataJSON, String userEmail, UserService userService) {
@@ -64,4 +68,11 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
     }
 
+    public List<Post> getAllPostsLikedByUser(UUID userId, UserService userService) {
+        User user = userService.getUserById(userId);
+        return likeRepository.findAllByUserOrderByCreatedAtDesc(user)
+                .stream()
+                .map(Like::getPost)
+                .toList();
+    }
 }

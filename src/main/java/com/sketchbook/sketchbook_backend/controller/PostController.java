@@ -91,6 +91,17 @@ public class PostController {
         return getPostsById(userId, authentication);
     }
 
+    @GetMapping("/likes/{userId}")
+    public ResponseEntity<List<PostDTO>> getLikedPosts(
+            @PathVariable UUID userId,
+            Authentication authentication) {
+        List<PostDTO> posts = postService.getAllPostsLikedByUser(userId, userService)
+                .stream()
+                .map(post -> toDTO(post, authentication))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(posts);
+    }
+
     @PostMapping("/{postId}/like")
     public ResponseEntity<Map<String, Object>> toggleLike(
             @PathVariable UUID postId,
