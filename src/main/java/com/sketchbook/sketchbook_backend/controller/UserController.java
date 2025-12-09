@@ -34,9 +34,6 @@ public class UserController {
         User user = userService.getUserById(id);
         String loggedInEmail = authentication.getName();
 
-        if(!user.getEmail().equals(loggedInEmail)){
-            throw new RuntimeException("You can only view your own profile");
-        }
         return ResponseEntity.ok(toDTO(user));
     }
 
