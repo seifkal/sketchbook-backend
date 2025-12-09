@@ -167,6 +167,8 @@ public class PostController {
                 post.getUser().getId(),
                 post.getUser().getUsername(),
                 post.getCreatedAt(),
+                post.getUser().getAvatarVariant(),
+                post.getUser().getAvatarColors(),
                 likeCount,
                 isLiked,
                 commentCount

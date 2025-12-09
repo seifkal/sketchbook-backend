@@ -2,8 +2,11 @@ package com.sketchbook.sketchbook_backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class UserRequestDTO {
@@ -23,4 +26,10 @@ public class UserRequestDTO {
     @NotBlank(message = "Password confirmation is required")
     @Size(min = 8,max = 50, message = "Password must be at least 8 characters long")
     private String confirmPassword;
+
+    @NotBlank(message = "Avatar variant is required")
+    private String avatarVariant;
+
+    @NotEmpty(message = "Avatar colors are required")
+    private List<String> avatarColors;
 }

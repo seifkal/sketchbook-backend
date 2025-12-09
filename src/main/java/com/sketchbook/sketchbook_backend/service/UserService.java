@@ -22,7 +22,7 @@ public class UserService {
     }
 
     @Transactional
-    public User registerUser(String username, String email, String password, String confirmPassword ,PasswordEncoder passwordEncoder) {
+    public User registerUser(String username, String email, String password, String confirmPassword,String avatarVariant, List<String> avatarColors ,PasswordEncoder passwordEncoder) {
         if (userRepository.existsByUsername(username))
             throw new RuntimeException("Username already taken");
         if (userRepository.existsByEmail(email))
@@ -32,6 +32,8 @@ public class UserService {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
+        user.setAvatarVariant(avatarVariant);
+        user.setAvatarColors(avatarColors);
         user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
     }

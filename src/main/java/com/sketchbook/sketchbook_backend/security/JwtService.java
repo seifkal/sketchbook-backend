@@ -40,6 +40,8 @@ public class JwtService {
                 .setSubject(user.getEmail())
                 .claim("userId", user.getId())
                 .claim("username", user.getUsername())
+                .claim("avatarVariant", user.getAvatarVariant())
+                .claim("avatarColors", user.getAvatarColors())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
