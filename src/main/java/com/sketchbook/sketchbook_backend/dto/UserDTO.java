@@ -11,6 +11,7 @@ public record UserDTO(
         List<String> avatarColors,
         Long followersCount,
         Long followingCount,
+        boolean isFollowing,
         String description,
         Instant createdAt
 ){

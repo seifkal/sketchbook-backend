@@ -1,14 +1,12 @@
 package com.sketchbook.sketchbook_backend.controller;
 
 import com.sketchbook.sketchbook_backend.dto.UserDTO;
-import com.sketchbook.sketchbook_backend.dto.UserRequestDTO;
 import com.sketchbook.sketchbook_backend.dto.UserUpdateDTO;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.service.FollowService;
 import com.sketchbook.sketchbook_backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,13 +32,13 @@ public class UserController {
         User user = userService.getUserById(id);
         String loggedInEmail = authentication.getName();
 
-        return ResponseEntity.ok(toDTO(user));
+        return ResponseEntity.ok(toDTO(user, authentication));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(Authentication authentication) {
         User user = userService.getUserByEmail(authentication.getName());
-        return ResponseEntity.ok(toDTO(user));
+        return ResponseEntity.ok(toDTO(user, authentication));
     }
 
     @PutMapping("/me")
@@ -48,14 +46,21 @@ public class UserController {
             Authentication authentication,
             @Valid @RequestBody UserUpdateDTO request){
         User user = userService.updateUser(authentication.getName(), request, passwordEncoder);
-        return ResponseEntity.status(HttpStatus.OK).body(toDTO(user));
+        return ResponseEntity.status(HttpStatus.OK).body(toDTO(user, authentication));
     }
 
-    private UserDTO toDTO(User user){
+    private UserDTO toDTO(User user, Authentication authentication){
 
         long followerCount = followService.countFollowers(user.getId());
 
         long followingCount = followService.countFollowing(user.getId());
+
+        boolean isFollowing = false;
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            String loggedInUser = authentication.getName();
+            isFollowing = followService.isFollowing(loggedInUser, user.getId());
+        }
 
         return new UserDTO(
                 user.getId(),
@@ -64,6 +69,7 @@ public class UserController {
                 user.getAvatarColors(),
                 followerCount,
                 followingCount,
+                isFollowing,
                 user.getDescription(),
                 user.getCreatedAt()
         );
