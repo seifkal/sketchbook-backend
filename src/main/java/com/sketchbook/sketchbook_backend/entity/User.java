@@ -2,6 +2,8 @@ package com.sketchbook.sketchbook_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -13,10 +15,13 @@ import java.util.UUID;
 @Entity
 @Table(name = "users")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = {"following", "followers"})
 public class User {
 
     @Id
     @GeneratedValue
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @Column(nullable = false, unique = true, length = 50)
