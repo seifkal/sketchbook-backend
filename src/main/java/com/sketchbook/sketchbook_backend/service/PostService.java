@@ -5,6 +5,7 @@ import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.LikeRepository;
 import com.sketchbook.sketchbook_backend.repository.PostRepository;
+import com.sketchbook.sketchbook_backend.repository.UserRepository;
 import com.sketchbook.sketchbook_backend.util.ImageGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -22,12 +24,14 @@ public class PostService {
     private final PostRepository postRepository;
     private final ImageGenerator imageGenerator;
     private final LikeRepository likeRepository;
+    private final UserService userService;
 
     @Autowired
-    public PostService(PostRepository postRepository, ImageGenerator imageGenerator, LikeRepository likeRepository) {
+    public PostService(PostRepository postRepository, ImageGenerator imageGenerator, LikeRepository likeRepository, UserService userService) {
         this.postRepository = postRepository;
         this.imageGenerator = imageGenerator;
         this.likeRepository = likeRepository;
+        this.userService = userService;
     }
 
     public Post createPostForUser(String title, String pixelDataJSON, String userEmail, UserService userService) {
@@ -74,5 +78,17 @@ public class PostService {
                 .stream()
                 .map(Like::getPost)
                 .toList();
+    }
+
+    public List<Post> getAllPostsByFollowing(UUID userId){
+        User user = userService.getUserById(userId);
+
+        Set<User> following = user.getFollowing();
+
+        if(following.isEmpty()){
+            return List.of();
+        }
+
+        return postRepository.findAllByUserInOrderByCreatedAtDesc(following);
     }
 }

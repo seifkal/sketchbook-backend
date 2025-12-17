@@ -149,6 +149,17 @@ public class PostController {
         return ResponseEntity.ok(commentService.getComments(post));
     }
 
+    @GetMapping("/following/me")
+    public ResponseEntity<List<PostDTO>> getFollowingPosts(Authentication authentication){
+        UUID userId = userService.getUserByEmail(authentication.getName()).getId();
+
+        List<PostDTO> posts = postService.getAllPostsByFollowing(userId)
+                .stream()
+                .map(post -> toDTO(post, authentication))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(posts);
+    }
+
 
     public PostDTO toDTO(Post post, Authentication authentication) {
         long likeCount = likeService.countLikes(post);
