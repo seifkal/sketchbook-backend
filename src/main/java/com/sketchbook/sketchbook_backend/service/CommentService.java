@@ -34,6 +34,8 @@ public class CommentService {
                         c.getUser().getId(),
                         c.getUser().getUsername(),
                         c.getPost().getId(),
+                        c.getUser().getAvatarVariant(),
+                        c.getUser().getAvatarColors(),
                         c.getText(),
                         c.getCreatedAt()
                 ))

@@ -62,6 +62,12 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDTO> getPostById(@PathVariable UUID postId, Authentication authentication) {
+        Post post = postService.getPostbyId(postId);
+        return ResponseEntity.ok(toDTO(post, authentication));
+    }
+
     @GetMapping("/username/{username}")
     public ResponseEntity<List<PostDTO>> getPostsByUsername(
             @PathVariable String username,
@@ -193,6 +199,8 @@ public class PostController {
                 comment.getUser().getId(),
                 comment.getUser().getUsername(),
                 comment.getPost().getId(),
+                comment.getUser().getAvatarVariant(),
+                comment.getUser().getAvatarColors(),
                 comment.getText(),
                 comment.getCreatedAt()
         );
