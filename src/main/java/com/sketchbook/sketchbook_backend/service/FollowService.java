@@ -27,6 +27,8 @@ public class FollowService {
         if (!follower.getFollowing().contains(following)) {
             follower.getFollowing().add(following);
             userRepository.save(follower);
+            userRepository.incrementFollowingCount(follower.getId());
+            userRepository.incrementFollowerCount(following.getId());
         }
     }
 
@@ -34,8 +36,11 @@ public class FollowService {
         User follower = userService.getUserByEmail(followerEmail);
         User following = userService.getUserById(followingId);
 
-        follower.getFollowing().remove(following);
-        userRepository.save(follower);
+        if (follower.getFollowing().remove(following)) {
+            userRepository.save(follower);
+            userRepository.decrementFollowingCount(follower.getId());
+            userRepository.decrementFollowerCount(following.getId());
+        }
     }
 
     public boolean isFollowing(User follower, UUID followingId) {

@@ -1,9 +1,8 @@
 package com.sketchbook.sketchbook_backend.entity;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -39,6 +38,14 @@ public class Post {
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private long likeCount = 0;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private long commentCount = 0;
 
     public Post() {
         this.createdAt = Instant.now();

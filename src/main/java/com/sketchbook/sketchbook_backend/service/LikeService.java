@@ -4,6 +4,7 @@ import com.sketchbook.sketchbook_backend.entity.Like;
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.LikeRepository;
+import com.sketchbook.sketchbook_backend.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,18 +17,21 @@ import java.util.Optional;
 public class LikeService {
 
     private final LikeRepository likeRepository;
+    private final PostRepository postRepository;
 
     public boolean toggleLike(Post post, User user) {
         Optional<Like> existing = likeRepository.findByPostAndUser(post, user);
 
         if (existing.isPresent()) {
             likeRepository.delete(existing.get());
+            postRepository.decrementLikeCount(post.getId());
             return false; // disliked
         } else {
             Like like = new Like();
             like.setPost(post);
             like.setUser(user);
             likeRepository.save(like);
+            postRepository.incrementLikeCount(post.getId());
             return true; // liked
         }
     }

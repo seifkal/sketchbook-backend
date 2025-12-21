@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -11,12 +12,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "users")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(exclude = {"following", "followers"})
+@ToString(exclude = { "following", "followers" })
 public class User {
 
     @Id
@@ -51,14 +51,18 @@ public class User {
 
     // Users this user follows
     @ManyToMany
-    @JoinTable(
-            name = "user_follows",
-            joinColumns = @JoinColumn(name = "follower_id"),
-            inverseJoinColumns = @JoinColumn(name = "following_id")
-    )
+    @JoinTable(name = "user_follows", joinColumns = @JoinColumn(name = "follower_id"), inverseJoinColumns = @JoinColumn(name = "following_id"))
     private Set<User> following = new HashSet<>();
 
     // Users who follow this user
     @ManyToMany(mappedBy = "following")
     private Set<User> followers = new HashSet<>();
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private int followerCount = 0;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private int followingCount = 0;
 }
