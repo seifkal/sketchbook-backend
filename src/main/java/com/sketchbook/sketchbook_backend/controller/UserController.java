@@ -19,10 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.UUID;
-
-
 
 @RestController
 @RequestMapping("/api/users")
@@ -41,17 +38,17 @@ public class UserController {
             @RequestParam(value = "sort", defaultValue = "recent") String sort,
             Authentication authentication) {
 
-        Pageable pageable = PageRequest.of(page,size);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<User> usersPage;
 
-        if("popular".equals(sort)){
+        if ("popular".equals(sort)) {
             usersPage = userRepository.findAllByOrderByFollowersCountDesc(pageable);
         } else {
             usersPage = userRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
 
-        User currentUser = userService.getUserByUsername(authentication.getName());
+        User currentUser = userService.getUserByEmail(authentication.getName());
 
         Page<UserDTO> users = usersPage.map(user -> toDTO(user, currentUser));
 
@@ -60,7 +57,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserDTO> getUserbyId(@PathVariable UUID id, Authentication authentication){
+    public ResponseEntity<UserDTO> getUserbyId(@PathVariable UUID id, Authentication authentication) {
         User user = userService.getUserById(id);
         String loggedInEmail = authentication.getName();
 
@@ -76,20 +73,16 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<UserDTO> updateUser(
             Authentication authentication,
-            @Valid @RequestBody UserUpdateDTO request){
+            @Valid @RequestBody UserUpdateDTO request) {
         User user = userService.updateUser(authentication.getName(), request, passwordEncoder);
-        return ResponseEntity.status(HttpStatus.OK).body(toDTO(user, userService.getUserByEmail(authentication.getName())));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(toDTO(user, userService.getUserByEmail(authentication.getName())));
     }
 
-    private UserDTO toDTO(User user, User currentUser){
-
-        long followerCount = followService.countFollowers(user.getId());
-
-        long followingCount = followService.countFollowing(user.getId());
-
+    private UserDTO toDTO(User user, User currentUser) {
         boolean isFollowing = false;
 
-        if(currentUser != null) {
+        if (currentUser != null) {
             isFollowing = followService.isFollowing(currentUser, user.getId());
         }
 
@@ -98,13 +91,11 @@ public class UserController {
                 user.getUsername(),
                 user.getAvatarVariant(),
                 user.getAvatarColors(),
-                followerCount,
-                followingCount,
+                (long) user.getFollowerCount(),
+                (long) user.getFollowingCount(),
                 isFollowing,
                 user.getDescription(),
-                user.getCreatedAt()
-        );
+                user.getCreatedAt());
     }
-
 
 }

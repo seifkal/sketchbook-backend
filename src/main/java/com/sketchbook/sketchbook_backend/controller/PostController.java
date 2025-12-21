@@ -39,10 +39,10 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostRequestDTO postRequest,
-                                              Authentication authentication) {
+            Authentication authentication) {
 
         String userEmail = authentication.getName();
-        try{
+        try {
             String pixelDataJson = objectMapper.writeValueAsString(postRequest.getPixelData());
             Post post = postService.createPostForUser(postRequest.getTitle(), pixelDataJson, userEmail, userService);
 
@@ -54,7 +54,7 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllPosts(Authentication authentication) {
-        User currentUser = userService.getUserByUsername(authentication.getName());
+        User currentUser = userService.getUserByEmail(authentication.getName());
 
         List<PostDTO> posts = postService.getAllPosts()
                 .stream()
@@ -74,7 +74,7 @@ public class PostController {
             @PathVariable String username,
             Authentication authentication) {
 
-        User currentUser = userService.getUserByUsername(authentication.getName());
+        User currentUser = userService.getUserByEmail(authentication.getName());
 
         List<PostDTO> posts = postService.getAllPostsForUsername(username, userService)
                 .stream()
@@ -88,7 +88,7 @@ public class PostController {
             @PathVariable UUID userId,
             Authentication authentication) {
 
-        User currentUser = userService.getUserByUsername(authentication.getName());
+        User currentUser = userService.getUserByEmail(authentication.getName());
         List<PostDTO> posts = postService.getAllPostsForUserId(userId, userService)
                 .stream()
                 .map(post -> toDTO(post, currentUser))
@@ -107,7 +107,7 @@ public class PostController {
     public ResponseEntity<List<PostDTO>> getLikedPosts(
             @PathVariable UUID userId,
             Authentication authentication) {
-        User currentUser = userService.getUserByUsername(authentication.getName());
+        User currentUser = userService.getUserByEmail(authentication.getName());
         List<PostDTO> posts = postService.getAllPostsLikedByUser(userId, userService)
                 .stream()
                 .map(post -> toDTO(post, currentUser))
@@ -131,7 +131,6 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/{postId}/isLiked")
     public ResponseEntity<Map<String, Boolean>> isLiked(
             @PathVariable UUID postId,
@@ -146,7 +145,8 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/comment")
-    public ResponseEntity<CommentDTO> commentPost(@PathVariable UUID postId, @Valid @RequestBody CommentRequestDTO request, Authentication authentication) {
+    public ResponseEntity<CommentDTO> commentPost(@PathVariable UUID postId,
+            @Valid @RequestBody CommentRequestDTO request, Authentication authentication) {
         Post post = postService.getPostbyId(postId);
         User user = userService.getUserByEmail(authentication.getName());
 
@@ -163,7 +163,7 @@ public class PostController {
     }
 
     @GetMapping("/following/me")
-    public ResponseEntity<List<PostDTO>> getFollowingPosts(Authentication authentication){
+    public ResponseEntity<List<PostDTO>> getFollowingPosts(Authentication authentication) {
         UUID userId = userService.getUserByEmail(authentication.getName()).getId();
 
         List<PostDTO> posts = postService.getAllPostsByFollowing(userId)
@@ -173,16 +173,12 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-
     public PostDTO toDTO(Post post, User currentUser) {
-        long likeCount = likeService.countLikes(post);
-        long commentCount = commentService.countComments(post);
         boolean isLiked = false;
 
-        if(currentUser != null){
+        if (currentUser != null) {
             isLiked = likeService.isLiked(post, currentUser);
         }
-
 
         return new PostDTO(
                 post.getId(),
@@ -193,14 +189,12 @@ public class PostController {
                 post.getCreatedAt(),
                 post.getUser().getAvatarVariant(),
                 post.getUser().getAvatarColors(),
-                likeCount,
+                post.getLikeCount(),
                 isLiked,
-                commentCount
-        );
+                post.getCommentCount());
     }
 
-
-    public CommentDTO toCommentDTO(Comment comment){
+    public CommentDTO toCommentDTO(Comment comment) {
         return new CommentDTO(
                 comment.getId(),
                 comment.getUser().getId(),
@@ -209,8 +203,7 @@ public class PostController {
                 comment.getUser().getAvatarVariant(),
                 comment.getUser().getAvatarColors(),
                 comment.getText(),
-                comment.getCreatedAt()
-        );
+                comment.getCreatedAt());
     }
 
 }
