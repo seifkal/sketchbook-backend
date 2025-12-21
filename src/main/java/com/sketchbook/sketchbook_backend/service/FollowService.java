@@ -38,8 +38,7 @@ public class FollowService {
         userRepository.save(follower);
     }
 
-    public boolean isFollowing(String followerEmail, UUID followingId) {
-        User follower = userService.getUserByEmail(followerEmail);
+    public boolean isFollowing(User follower, UUID followingId) {
         User following = userService.getUserById(followingId);
         return follower.getFollowing().contains(following);
     }

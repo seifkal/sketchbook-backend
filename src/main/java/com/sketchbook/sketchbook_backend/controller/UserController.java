@@ -51,7 +51,9 @@ public class UserController {
             usersPage = userRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
 
-        Page<UserDTO> users = usersPage.map(user -> toDTO(user, authentication));
+        User currentUser = userService.getUserByUsername(authentication.getName());
+
+        Page<UserDTO> users = usersPage.map(user -> toDTO(user, currentUser));
 
         return new PagedModel<>(users);
     }
@@ -62,13 +64,13 @@ public class UserController {
         User user = userService.getUserById(id);
         String loggedInEmail = authentication.getName();
 
-        return ResponseEntity.ok(toDTO(user, authentication));
+        return ResponseEntity.ok(toDTO(user, userService.getUserByEmail(loggedInEmail)));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(Authentication authentication) {
         User user = userService.getUserByEmail(authentication.getName());
-        return ResponseEntity.ok(toDTO(user, authentication));
+        return ResponseEntity.ok(toDTO(user, user));
     }
 
     @PutMapping("/me")
@@ -76,10 +78,10 @@ public class UserController {
             Authentication authentication,
             @Valid @RequestBody UserUpdateDTO request){
         User user = userService.updateUser(authentication.getName(), request, passwordEncoder);
-        return ResponseEntity.status(HttpStatus.OK).body(toDTO(user, authentication));
+        return ResponseEntity.status(HttpStatus.OK).body(toDTO(user, userService.getUserByEmail(authentication.getName())));
     }
 
-    private UserDTO toDTO(User user, Authentication authentication){
+    private UserDTO toDTO(User user, User currentUser){
 
         long followerCount = followService.countFollowers(user.getId());
 
@@ -87,9 +89,8 @@ public class UserController {
 
         boolean isFollowing = false;
 
-        if (authentication != null && authentication.isAuthenticated()) {
-            String loggedInUser = authentication.getName();
-            isFollowing = followService.isFollowing(loggedInUser, user.getId());
+        if(currentUser != null) {
+            isFollowing = followService.isFollowing(currentUser, user.getId());
         }
 
         return new UserDTO(

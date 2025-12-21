@@ -13,7 +13,6 @@ import com.sketchbook.sketchbook_backend.service.CommentService;
 import com.sketchbook.sketchbook_backend.service.LikeService;
 import com.sketchbook.sketchbook_backend.service.PostService;
 import com.sketchbook.sketchbook_backend.service.UserService;
-import com.sketchbook.sketchbook_backend.util.ImageGenerator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,7 +46,7 @@ public class PostController {
             String pixelDataJson = objectMapper.writeValueAsString(postRequest.getPixelData());
             Post post = postService.createPostForUser(postRequest.getTitle(), pixelDataJson, userEmail, userService);
 
-            return ResponseEntity.ok(toDTO(post, authentication));
+            return ResponseEntity.ok(toDTO(post, userService.getUserByEmail(userEmail)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse pixel data");
         }
@@ -55,9 +54,11 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllPosts(Authentication authentication) {
+        User currentUser = userService.getUserByUsername(authentication.getName());
+
         List<PostDTO> posts = postService.getAllPosts()
                 .stream()
-                .map(post -> toDTO(post, authentication))
+                .map(post -> toDTO(post, currentUser))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(posts);
     }
@@ -65,16 +66,19 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPostById(@PathVariable UUID postId, Authentication authentication) {
         Post post = postService.getPostbyId(postId);
-        return ResponseEntity.ok(toDTO(post, authentication));
+        return ResponseEntity.ok(toDTO(post, userService.getUserByEmail(authentication.getName())));
     }
 
     @GetMapping("/username/{username}")
     public ResponseEntity<List<PostDTO>> getPostsByUsername(
             @PathVariable String username,
             Authentication authentication) {
+
+        User currentUser = userService.getUserByUsername(authentication.getName());
+
         List<PostDTO> posts = postService.getAllPostsForUsername(username, userService)
                 .stream()
-                .map(post -> toDTO(post, authentication))
+                .map(post -> toDTO(post, currentUser))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(posts);
     }
@@ -83,9 +87,11 @@ public class PostController {
     public ResponseEntity<List<PostDTO>> getPostsById(
             @PathVariable UUID userId,
             Authentication authentication) {
+
+        User currentUser = userService.getUserByUsername(authentication.getName());
         List<PostDTO> posts = postService.getAllPostsForUserId(userId, userService)
                 .stream()
-                .map(post -> toDTO(post, authentication))
+                .map(post -> toDTO(post, currentUser))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(posts);
     }
@@ -101,9 +107,10 @@ public class PostController {
     public ResponseEntity<List<PostDTO>> getLikedPosts(
             @PathVariable UUID userId,
             Authentication authentication) {
+        User currentUser = userService.getUserByUsername(authentication.getName());
         List<PostDTO> posts = postService.getAllPostsLikedByUser(userId, userService)
                 .stream()
-                .map(post -> toDTO(post, authentication))
+                .map(post -> toDTO(post, currentUser))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(posts);
     }
@@ -161,21 +168,21 @@ public class PostController {
 
         List<PostDTO> posts = postService.getAllPostsByFollowing(userId)
                 .stream()
-                .map(post -> toDTO(post, authentication))
+                .map(post -> toDTO(post, userService.getUserByEmail(authentication.getName())))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(posts);
     }
 
 
-    public PostDTO toDTO(Post post, Authentication authentication) {
+    public PostDTO toDTO(Post post, User currentUser) {
         long likeCount = likeService.countLikes(post);
         long commentCount = commentService.countComments(post);
         boolean isLiked = false;
 
-        if (authentication != null && authentication.isAuthenticated()) {
-            User user = userService.getUserByEmail(authentication.getName());
-            isLiked = likeService.isLiked(post, user);
+        if(currentUser != null){
+            isLiked = likeService.isLiked(post, currentUser);
         }
+
 
         return new PostDTO(
                 post.getId(),

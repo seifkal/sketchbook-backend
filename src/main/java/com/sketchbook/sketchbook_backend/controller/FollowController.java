@@ -1,6 +1,8 @@
 package com.sketchbook.sketchbook_backend.controller;
 
+import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.service.FollowService;
+import com.sketchbook.sketchbook_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,7 @@ import java.util.UUID;
 public class FollowController {
 
     private final FollowService followService;
+    private final UserService userService;
 
     @PostMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> followUser(@PathVariable UUID userId, Authentication authentication) {
@@ -32,8 +35,8 @@ public class FollowController {
 
     @GetMapping("/{userId}/status")
     public ResponseEntity<Map<String, Object>> isFollowing(@PathVariable UUID userId, Authentication authentication) {
-        String followerEmail = authentication.getName();
-        boolean following = followService.isFollowing(followerEmail, userId);
+        User follower = userService.getUserByEmail(authentication.getName());
+        boolean following = followService.isFollowing(follower, userId);
         return ResponseEntity.ok(Map.of("following", following));
     }
 
