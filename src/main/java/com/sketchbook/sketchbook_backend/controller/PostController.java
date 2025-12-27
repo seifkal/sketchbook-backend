@@ -9,15 +9,20 @@ import com.sketchbook.sketchbook_backend.dto.PostRequestDTO;
 import com.sketchbook.sketchbook_backend.entity.Comment;
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.repository.PostRepository;
 import com.sketchbook.sketchbook_backend.service.CommentService;
 import com.sketchbook.sketchbook_backend.service.LikeService;
 import com.sketchbook.sketchbook_backend.service.PostService;
 import com.sketchbook.sketchbook_backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -36,6 +41,7 @@ public class PostController {
     private final LikeService likeService;
     private final CommentService commentService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PostRepository postRepository;
 
     @PostMapping
     public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostRequestDTO postRequest,
@@ -53,66 +59,88 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostDTO>> getAllPosts(Authentication authentication) {
+    public ResponseEntity<Page<PostDTO>> getAllPosts(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "3") int size,
+                                                     Authentication authentication) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
         User currentUser = userService.getUserByEmail(authentication.getName());
 
-        List<PostDTO> posts = postService.getAllPosts()
-                .stream()
-                .map(post -> toDTO(post, currentUser))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(posts);
+        Page<Post> posts = postService.getAllPosts(pageable);
+
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, currentUser)));
+
     }
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPostById(@PathVariable UUID postId, Authentication authentication) {
+
         Post post = postService.getPostbyId(postId);
+
         return ResponseEntity.ok(toDTO(post, userService.getUserByEmail(authentication.getName())));
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<List<PostDTO>> getPostsByUsername(
+    public ResponseEntity<Page<PostDTO>> getPostsByUsername(
             @PathVariable String username,
-            Authentication authentication) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size,
+            Authentication authentication){
+
+        Pageable pageable = PageRequest.of(page, size);
 
         User currentUser = userService.getUserByEmail(authentication.getName());
 
-        List<PostDTO> posts = postService.getAllPostsForUsername(username, userService)
-                .stream()
-                .map(post -> toDTO(post, currentUser))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(posts);
+        Page<Post> posts = postService.getAllPostsForUsername(username, userService, pageable);
+
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, currentUser)));
     }
 
     @GetMapping("/id/{userId}")
-    public ResponseEntity<List<PostDTO>> getPostsById(
+    public ResponseEntity<Page<PostDTO>> getPostsById(
             @PathVariable UUID userId,
-            Authentication authentication) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size,
+            Authentication authentication){
+
+        Pageable pageable = PageRequest.of(page, size);
 
         User currentUser = userService.getUserByEmail(authentication.getName());
-        List<PostDTO> posts = postService.getAllPostsForUserId(userId, userService)
-                .stream()
-                .map(post -> toDTO(post, currentUser))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(posts);
+
+        Page<Post> posts = postService.getAllPostsForUserId(userId, pageable);
+
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, currentUser)));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<PostDTO>> getMyPosts(Authentication authentication) {
+    public ResponseEntity<Page<PostDTO>> getMyPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size,
+            Authentication authentication) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
         User user = userService.getUserByEmail(authentication.getName());
+
         UUID userId = user.getId();
-        return getPostsById(userId, authentication);
+        Page<Post> posts = postService.getAllPostsForUserId(userId, pageable);
+
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, user)));
     }
 
-    @GetMapping("/likes/{userId}")
-    public ResponseEntity<List<PostDTO>> getLikedPosts(
+    @GetMapping("likes/{userId}")
+    public ResponseEntity<Page<PostDTO>> getLikedPosts(
             @PathVariable UUID userId,
-            Authentication authentication) {
-        User currentUser = userService.getUserByEmail(authentication.getName());
-        List<PostDTO> posts = postService.getAllPostsLikedByUser(userId, userService)
-                .stream()
-                .map(post -> toDTO(post, currentUser))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(posts);
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size,
+            Authentication authentication){
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Post> posts = postService.getAllPostsLikedByUser(userId, pageable);
+
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, userService.getUserByEmail(authentication.getName()))));
     }
 
     @PostMapping("/{postId}/like")
@@ -162,15 +190,18 @@ public class PostController {
         return ResponseEntity.ok(commentService.getComments(post));
     }
 
-    @GetMapping("/following/me")
-    public ResponseEntity<List<PostDTO>> getFollowingPosts(Authentication authentication) {
+    @GetMapping("following/me")
+    public ResponseEntity<Page<PostDTO>> getFollowingPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size,
+            Authentication authentication){
+        Pageable pageable = PageRequest.of(page, size);
+
         UUID userId = userService.getUserByEmail(authentication.getName()).getId();
 
-        List<PostDTO> posts = postService.getAllPostsByFollowing(userId)
-                .stream()
-                .map(post -> toDTO(post, userService.getUserByEmail(authentication.getName())))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(posts);
+        Page<Post> posts = postService.getAllPostsByFollowing(userId, pageable);
+
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, userService.getUserByEmail(authentication.getName()))));
     }
 
     public PostDTO toDTO(Post post, User currentUser) {

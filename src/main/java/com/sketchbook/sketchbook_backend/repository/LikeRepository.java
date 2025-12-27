@@ -3,6 +3,8 @@ package com.sketchbook.sketchbook_backend.repository;
 import com.sketchbook.sketchbook_backend.entity.Like;
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.swing.text.html.Option;
@@ -18,5 +20,5 @@ public interface LikeRepository extends JpaRepository<Like, UUID> {
 
     boolean existsByPostIdAndUserId(UUID postId, UUID userId);
 
-    List<Like> findAllByUserOrderByCreatedAtDesc(User user);
+    Page<Like> findAllByUserOrderByCreatedAtDesc(Pageable pageable, User user);
 }

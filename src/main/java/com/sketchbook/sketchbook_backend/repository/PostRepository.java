@@ -2,6 +2,8 @@ package com.sketchbook.sketchbook_backend.repository;
 
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,11 +15,11 @@ import java.util.UUID;
 
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
-    List<Post> findAllByUserOrderByCreatedAtDesc(User author); // Find all posts by author
+    Page<Post> findAllByUserOrderByCreatedAtDesc(Pageable pageable, User author); // Find all posts by author
 
-    List<Post> findAllByOrderByCreatedAtDesc(); // Find all posts for feed, newest first
+    Page<Post> findAllByOrderByCreatedAtDesc(Pageable pageable); // Find all posts for feed, newest first
 
-    List<Post> findAllByUserInOrderByCreatedAtDesc(Set<User> users); // Find all posts by followed users
+    Page<Post> findAllByUserInOrderByCreatedAtDesc(Pageable pageable, Set<User> following); //Find all posts by followed users
 
     @Modifying
     @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1 WHERE p.id = :postId")

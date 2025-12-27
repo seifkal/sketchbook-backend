@@ -5,15 +5,15 @@ import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.repository.LikeRepository;
 import com.sketchbook.sketchbook_backend.repository.PostRepository;
-import com.sketchbook.sketchbook_backend.repository.UserRepository;
 import com.sketchbook.sketchbook_backend.util.ImageGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,18 +53,18 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    public List<Post> getAllPosts() {
-        return postRepository.findAllByOrderByCreatedAtDesc();
+    public Page<Post> getAllPosts(Pageable pageable) {
+        return postRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
-    public List<Post> getAllPostsForUsername(String username, UserService userService) {
+    public Page<Post> getAllPostsForUsername(String username, UserService userService, Pageable pageable) {
         User user = userService.getUserByUsername(username);
-        return postRepository.findAllByUserOrderByCreatedAtDesc(user);
+        return postRepository.findAllByUserOrderByCreatedAtDesc(pageable, user);
     }
 
-    public List<Post> getAllPostsForUserId(UUID userId, UserService userService) {
+    public Page<Post> getAllPostsForUserId(UUID userId, Pageable pageable) {
         User user = userService.getUserById(userId);
-        return postRepository.findAllByUserOrderByCreatedAtDesc(user);
+        return postRepository.findAllByUserOrderByCreatedAtDesc(pageable, user);
     }
 
     public Post getPostbyId(UUID postId) {
@@ -72,23 +72,22 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
     }
 
-    public List<Post> getAllPostsLikedByUser(UUID userId, UserService userService) {
+    public Page<Post> getAllPostsLikedByUser(UUID userId,Pageable pageable){
         User user = userService.getUserById(userId);
-        return likeRepository.findAllByUserOrderByCreatedAtDesc(user)
-                .stream()
-                .map(Like::getPost)
-                .toList();
+        return likeRepository.findAllByUserOrderByCreatedAtDesc(pageable, user)
+                .map(Like::getPost);
+
     }
 
-    public List<Post> getAllPostsByFollowing(UUID userId){
+    public Page<Post> getAllPostsByFollowing(UUID userId, Pageable pageable){
         User user = userService.getUserById(userId);
 
         Set<User> following = user.getFollowing();
 
-        if(following.isEmpty()){
-            return List.of();
+        if (following.isEmpty()){
+            return Page.empty();
         }
 
-        return postRepository.findAllByUserInOrderByCreatedAtDesc(following);
+        return  postRepository.findAllByUserInOrderByCreatedAtDesc(pageable ,following);
     }
 }
