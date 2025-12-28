@@ -28,7 +28,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail(); // using email for login
+        return user.getId().toString(); // Return user ID for JWT validation
     }
 
     @Override

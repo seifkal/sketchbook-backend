@@ -9,7 +9,6 @@ import com.sketchbook.sketchbook_backend.dto.PostRequestDTO;
 import com.sketchbook.sketchbook_backend.entity.Comment;
 import com.sketchbook.sketchbook_backend.entity.Post;
 import com.sketchbook.sketchbook_backend.entity.User;
-import com.sketchbook.sketchbook_backend.repository.PostRepository;
 import com.sketchbook.sketchbook_backend.service.CommentService;
 import com.sketchbook.sketchbook_backend.service.LikeService;
 import com.sketchbook.sketchbook_backend.service.PostService;
@@ -22,14 +21,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -41,18 +38,17 @@ public class PostController {
     private final LikeService likeService;
     private final CommentService commentService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final PostRepository postRepository;
 
     @PostMapping
     public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostRequestDTO postRequest,
             Authentication authentication) {
 
-        String userEmail = authentication.getName();
+        UUID userId = UUID.fromString(authentication.getName());
         try {
             String pixelDataJson = objectMapper.writeValueAsString(postRequest.getPixelData());
-            Post post = postService.createPostForUser(postRequest.getTitle(), pixelDataJson, userEmail, userService);
+            Post post = postService.createPostForUser(postRequest.getTitle(), pixelDataJson, userId);
 
-            return ResponseEntity.ok(toDTO(post, userService.getUserByEmail(userEmail)));
+            return ResponseEntity.ok(toDTO(post, userService.getUserById(userId)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse pixel data");
         }
@@ -60,12 +56,12 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<Page<PostDTO>> getAllPosts(@RequestParam(defaultValue = "0") int page,
-                                                     @RequestParam(defaultValue = "3") int size,
-                                                     Authentication authentication) {
+            @RequestParam(defaultValue = "3") int size,
+            Authentication authentication) {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        User currentUser = userService.getUserByEmail(authentication.getName());
+        User currentUser = userService.getUserById(UUID.fromString(authentication.getName()));
 
         Page<Post> posts = postService.getAllPosts(pageable);
 
@@ -78,7 +74,7 @@ public class PostController {
 
         Post post = postService.getPostbyId(postId);
 
-        return ResponseEntity.ok(toDTO(post, userService.getUserByEmail(authentication.getName())));
+        return ResponseEntity.ok(toDTO(post, userService.getUserById(UUID.fromString(authentication.getName()))));
     }
 
     @GetMapping("/username/{username}")
@@ -86,11 +82,11 @@ public class PostController {
             @PathVariable String username,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "3") int size,
-            Authentication authentication){
+            Authentication authentication) {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        User currentUser = userService.getUserByEmail(authentication.getName());
+        User currentUser = userService.getUserById(UUID.fromString(authentication.getName()));
 
         Page<Post> posts = postService.getAllPostsForUsername(username, userService, pageable);
 
@@ -102,11 +98,11 @@ public class PostController {
             @PathVariable UUID userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "3") int size,
-            Authentication authentication){
+            Authentication authentication) {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        User currentUser = userService.getUserByEmail(authentication.getName());
+        User currentUser = userService.getUserById(UUID.fromString(authentication.getName()));
 
         Page<Post> posts = postService.getAllPostsForUserId(userId, pageable);
 
@@ -121,9 +117,9 @@ public class PostController {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        User user = userService.getUserByEmail(authentication.getName());
+        UUID userId = UUID.fromString(authentication.getName());
+        User user = userService.getUserById(userId);
 
-        UUID userId = user.getId();
         Page<Post> posts = postService.getAllPostsForUserId(userId, pageable);
 
         return ResponseEntity.ok(posts.map(post -> toDTO(post, user)));
@@ -134,13 +130,14 @@ public class PostController {
             @PathVariable UUID userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "3") int size,
-            Authentication authentication){
+            Authentication authentication) {
 
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Post> posts = postService.getAllPostsLikedByUser(userId, pageable);
 
-        return ResponseEntity.ok(posts.map(post -> toDTO(post, userService.getUserByEmail(authentication.getName()))));
+        User currentUser = userService.getUserById(UUID.fromString(authentication.getName()));
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, currentUser)));
     }
 
     @PostMapping("/{postId}/like")
@@ -148,8 +145,8 @@ public class PostController {
             @PathVariable UUID postId,
             Authentication authentication) {
 
-        String userEmail = authentication.getName();
-        User user = userService.getUserByEmail(userEmail);
+        UUID userId = UUID.fromString(authentication.getName());
+        User user = userService.getUserById(userId);
         Post post = postService.getPostbyId(postId);
 
         boolean liked = likeService.toggleLike(post, user);
@@ -164,7 +161,7 @@ public class PostController {
             @PathVariable UUID postId,
             Authentication authentication) {
 
-        User user = userService.getUserByEmail(authentication.getName());
+        User user = userService.getUserById(UUID.fromString(authentication.getName()));
         Post post = postService.getPostbyId(postId);
 
         boolean isLiked = likeService.isLiked(post, user);
@@ -176,7 +173,7 @@ public class PostController {
     public ResponseEntity<CommentDTO> commentPost(@PathVariable UUID postId,
             @Valid @RequestBody CommentRequestDTO request, Authentication authentication) {
         Post post = postService.getPostbyId(postId);
-        User user = userService.getUserByEmail(authentication.getName());
+        User user = userService.getUserById(UUID.fromString(authentication.getName()));
 
         Comment comment = commentService.createComment(post, user, request.getContent());
 
@@ -194,14 +191,15 @@ public class PostController {
     public ResponseEntity<Page<PostDTO>> getFollowingPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "3") int size,
-            Authentication authentication){
+            Authentication authentication) {
         Pageable pageable = PageRequest.of(page, size);
 
-        UUID userId = userService.getUserByEmail(authentication.getName()).getId();
+        UUID userId = UUID.fromString(authentication.getName());
+        User user = userService.getUserById(userId);
 
         Page<Post> posts = postService.getAllPostsByFollowing(userId, pageable);
 
-        return ResponseEntity.ok(posts.map(post -> toDTO(post, userService.getUserByEmail(authentication.getName()))));
+        return ResponseEntity.ok(posts.map(post -> toDTO(post, user)));
     }
 
     public PostDTO toDTO(Post post, User currentUser) {

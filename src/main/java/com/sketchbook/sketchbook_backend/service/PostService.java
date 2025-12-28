@@ -27,15 +27,16 @@ public class PostService {
     private final UserService userService;
 
     @Autowired
-    public PostService(PostRepository postRepository, ImageGenerator imageGenerator, LikeRepository likeRepository, UserService userService) {
+    public PostService(PostRepository postRepository, ImageGenerator imageGenerator, LikeRepository likeRepository,
+            UserService userService) {
         this.postRepository = postRepository;
         this.imageGenerator = imageGenerator;
         this.likeRepository = likeRepository;
         this.userService = userService;
     }
 
-    public Post createPostForUser(String title, String pixelDataJSON, String userEmail, UserService userService) {
-        User user = userService.getUserByEmail(userEmail);
+    public Post createPostForUser(String title, String pixelDataJSON, UUID userId) {
+        User user = userService.getUserById(userId);
 
         Post post = new Post();
         post.setTitle(title);
@@ -43,10 +44,10 @@ public class PostService {
         post.setUser(user);
         post.setCreatedAt(Instant.now());
 
-        try{
+        try {
             String url = imageGenerator.generateImage(pixelDataJSON);
             post.setImageUrl(url);
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException("Failed to generate image");
         }
 
@@ -72,22 +73,22 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
     }
 
-    public Page<Post> getAllPostsLikedByUser(UUID userId,Pageable pageable){
+    public Page<Post> getAllPostsLikedByUser(UUID userId, Pageable pageable) {
         User user = userService.getUserById(userId);
         return likeRepository.findAllByUserOrderByCreatedAtDesc(pageable, user)
                 .map(Like::getPost);
 
     }
 
-    public Page<Post> getAllPostsByFollowing(UUID userId, Pageable pageable){
+    public Page<Post> getAllPostsByFollowing(UUID userId, Pageable pageable) {
         User user = userService.getUserById(userId);
 
         Set<User> following = user.getFollowing();
 
-        if (following.isEmpty()){
+        if (following.isEmpty()) {
             return Page.empty();
         }
 
-        return  postRepository.findAllByUserInOrderByCreatedAtDesc(pageable ,following);
+        return postRepository.findAllByUserInOrderByCreatedAtDesc(pageable, following);
     }
 }

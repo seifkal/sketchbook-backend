@@ -16,8 +16,8 @@ public class FollowService {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    public void followUser(String followerEmail, UUID followingId) {
-        User follower = userService.getUserByEmail(followerEmail);
+    public void followUser(UUID followerId, UUID followingId) {
+        User follower = userService.getUserById(followerId);
         User following = userService.getUserById(followingId);
 
         if (follower.equals(following)) {
@@ -32,8 +32,8 @@ public class FollowService {
         }
     }
 
-    public void unfollowUser(String followerEmail, UUID followingId) {
-        User follower = userService.getUserByEmail(followerEmail);
+    public void unfollowUser(UUID followerId, UUID followingId) {
+        User follower = userService.getUserById(followerId);
         User following = userService.getUserById(followingId);
 
         if (follower.getFollowing().remove(following)) {
@@ -43,7 +43,8 @@ public class FollowService {
         }
     }
 
-    public boolean isFollowing(User follower, UUID followingId) {
+    public boolean isFollowing(UUID followerId, UUID followingId) {
+        User follower = userService.getUserById(followerId);
         User following = userService.getUserById(followingId);
         return follower.getFollowing().contains(following);
     }

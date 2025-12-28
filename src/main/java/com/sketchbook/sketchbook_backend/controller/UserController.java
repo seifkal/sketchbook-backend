@@ -48,7 +48,7 @@ public class UserController {
             usersPage = userRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
 
-        User currentUser = userService.getUserByEmail(authentication.getName());
+        User currentUser = userService.getUserById(UUID.fromString(authentication.getName()));
 
         Page<UserDTO> users = usersPage.map(user -> toDTO(user, currentUser));
 
@@ -59,14 +59,14 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserDTO> getUserbyId(@PathVariable UUID id, Authentication authentication) {
         User user = userService.getUserById(id);
-        String loggedInEmail = authentication.getName();
+        UUID currentUserId = UUID.fromString(authentication.getName());
 
-        return ResponseEntity.ok(toDTO(user, userService.getUserByEmail(loggedInEmail)));
+        return ResponseEntity.ok(toDTO(user, userService.getUserById(currentUserId)));
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser(Authentication authentication) {
-        User user = userService.getUserByEmail(authentication.getName());
+        User user = userService.getUserById(UUID.fromString(authentication.getName()));
         return ResponseEntity.ok(toDTO(user, user));
     }
 
@@ -74,16 +74,17 @@ public class UserController {
     public ResponseEntity<UserDTO> updateUser(
             Authentication authentication,
             @Valid @RequestBody UserUpdateDTO request) {
-        User user = userService.updateUser(authentication.getName(), request, passwordEncoder);
+        UUID userId = UUID.fromString(authentication.getName());
+        User user = userService.updateUser(userId, request, passwordEncoder);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(toDTO(user, userService.getUserByEmail(authentication.getName())));
+                .body(toDTO(user, user));
     }
 
     private UserDTO toDTO(User user, User currentUser) {
         boolean isFollowing = false;
 
         if (currentUser != null) {
-            isFollowing = followService.isFollowing(currentUser, user.getId());
+            isFollowing = followService.isFollowing(currentUser.getId(), user.getId());
         }
 
         return new UserDTO(

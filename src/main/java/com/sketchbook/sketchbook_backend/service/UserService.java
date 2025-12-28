@@ -22,12 +22,13 @@ public class UserService {
     }
 
     @Transactional
-    public User registerUser(String username, String email, String password, String confirmPassword,String avatarVariant, List<String> avatarColors ,PasswordEncoder passwordEncoder) {
+    public User registerUser(String username, String email, String password, String confirmPassword,
+            String avatarVariant, List<String> avatarColors, PasswordEncoder passwordEncoder) {
         if (userRepository.existsByUsername(username))
             throw new RuntimeException("Username already taken");
         if (userRepository.existsByEmail(email))
             throw new RuntimeException("Email already registered");
-        if(!password.equals(confirmPassword))
+        if (!password.equals(confirmPassword))
             throw new RuntimeException("Passwords do not match");
         User user = new User();
         user.setUsername(username);
@@ -62,15 +63,11 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(String loggedInEmail,
-                           UserUpdateDTO request,
-                           PasswordEncoder passwordEncoder) {
+    public User updateUser(UUID userId,
+            UserUpdateDTO request,
+            PasswordEncoder passwordEncoder) {
 
-        User user = getUserByEmail(loggedInEmail);
-
-        if (!user.getEmail().equals(loggedInEmail)) {
-            throw new RuntimeException("You can only update your own profile");
-        }
+        User user = getUserById(userId);
 
         if (request.getUsername() != null && !request.getUsername().isBlank()
                 && !request.getUsername().equals(user.getUsername())) {
