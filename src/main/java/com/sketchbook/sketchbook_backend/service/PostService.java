@@ -91,4 +91,16 @@ public class PostService {
 
         return postRepository.findAllByUserInOrderByCreatedAtDesc(pageable, following);
     }
+
+    @Transactional
+    public void deletePost(UUID postId, UUID userId) {
+        Post post = getPostbyId(postId);
+
+        if (post.getUser().getId().equals(userId)) {
+            postRepository.delete(post);
+        }
+        else {
+            throw new RuntimeException("You do not have permission to delete this post");
+        }
+    }
 }

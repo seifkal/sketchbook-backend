@@ -202,6 +202,13 @@ public class PostController {
         return ResponseEntity.ok(posts.map(post -> toDTO(post, user)));
     }
 
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable UUID postId, Authentication authentication) {
+        UUID userId = UUID.fromString(authentication.getName());
+        postService.deletePost(postId, userId);
+        return ResponseEntity.ok().build();
+    }
+
     public PostDTO toDTO(Post post, User currentUser) {
         boolean isLiked = false;
 
