@@ -94,7 +94,11 @@
             <artifactId>imgscalr-lib</artifactId>
             <version>4.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.41.4</version>
+        </dependency>
     </dependencies>
 
 	<build>
