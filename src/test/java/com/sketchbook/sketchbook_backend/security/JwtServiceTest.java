@@ -1,6 +1,7 @@
 package com.sketchbook.sketchbook_backend.security;
 
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.entity.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -24,12 +25,15 @@ class JwtServiceTest {
         user.setId(UUID.randomUUID());
         user.setUsername("artist");
         user.setEmail("artist@example.com");
+        user.setRole(UserRole.USER);
         user.setAvatarVariant("variant");
         user.setAvatarColors(List.of("#123456"));
 
         String token = jwtService.generateToken(user);
+        String role = jwtService.extractClaim(token, claims -> claims.get("role", String.class));
 
         assertThat(jwtService.extractUsername(token)).isEqualTo(user.getId().toString());
+        assertThat(role).isEqualTo("USER");
     }
 
     @Test
@@ -42,6 +46,7 @@ class JwtServiceTest {
         user.setId(UUID.randomUUID());
         user.setUsername("artist");
         user.setEmail("artist@example.com");
+        user.setRole(UserRole.USER);
 
         String token = jwtService.generateToken(user);
 

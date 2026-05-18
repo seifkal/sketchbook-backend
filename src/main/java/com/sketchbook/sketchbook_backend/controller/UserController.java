@@ -90,6 +90,7 @@ public class UserController {
         return new UserDTO(
                 user.getId(),
                 user.getUsername(),
+                user.getRole(),
                 user.getAvatarVariant(),
                 user.getAvatarColors(),
                 (long) user.getFollowerCount(),

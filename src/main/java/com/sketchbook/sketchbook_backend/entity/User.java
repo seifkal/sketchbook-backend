@@ -33,6 +33,11 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @ColumnDefault("'USER'")
+    private UserRole role = UserRole.USER;
+
     @Column(length = 255)
     private String avatarVariant;
 

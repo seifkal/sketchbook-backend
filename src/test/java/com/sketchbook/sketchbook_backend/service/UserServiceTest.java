@@ -2,6 +2,7 @@ package com.sketchbook.sketchbook_backend.service;
 
 import com.sketchbook.sketchbook_backend.dto.UserUpdateDTO;
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.entity.UserRole;
 import com.sketchbook.sketchbook_backend.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,6 +115,7 @@ class UserServiceTest {
         assertThat(captured.getEmail()).isEqualTo("alice@example.com");
         assertThat(captured.getAvatarVariant()).isEqualTo("variant");
         assertThat(captured.getAvatarColors()).containsExactly("#000000", "#FFFFFF");
+        assertThat(captured.getRole()).isEqualTo(UserRole.USER);
         assertThat(captured.getPasswordHash()).isEqualTo("hashed-password");
     }
 

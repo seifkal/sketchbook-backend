@@ -1,6 +1,7 @@
 package com.sketchbook.sketchbook_backend.security;
 
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.entity.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -33,11 +34,14 @@ public class JwtService {
     }
 
     public String generateToken(User user) {
+        UserRole role = user.getRole() == null ? UserRole.USER : user.getRole();
+
         return Jwts.builder()
                 .setSubject(user.getId().toString())
                 .claim("userId", user.getId())
                 .claim("email", user.getEmail())
                 .claim("username", user.getUsername())
+                .claim("role", role.name())
                 .claim("avatarVariant", user.getAvatarVariant())
                 .claim("avatarColors", user.getAvatarColors())
                 .setIssuedAt(new Date())
