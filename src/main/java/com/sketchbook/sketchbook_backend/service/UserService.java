@@ -2,6 +2,7 @@ package com.sketchbook.sketchbook_backend.service;
 
 import com.sketchbook.sketchbook_backend.dto.UserUpdateDTO;
 import com.sketchbook.sketchbook_backend.entity.User;
+import com.sketchbook.sketchbook_backend.entity.UserRole;
 import com.sketchbook.sketchbook_backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class UserService {
         user.setEmail(email);
         user.setAvatarVariant(avatarVariant);
         user.setAvatarColors(avatarColors);
+        user.setRole(UserRole.USER);
         user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
