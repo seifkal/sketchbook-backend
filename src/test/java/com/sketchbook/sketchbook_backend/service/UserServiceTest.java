@@ -19,6 +19,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -117,6 +118,26 @@ class UserServiceTest {
         assertThat(captured.getAvatarColors()).containsExactly("#000000", "#FFFFFF");
         assertThat(captured.getRole()).isEqualTo(UserRole.USER);
         assertThat(captured.getPasswordHash()).isEqualTo("hashed-password");
+    }
+
+    @Test
+    void registerGuest_savesGeneratedGuestUser() {
+        when(userRepository.existsByUsername(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("hashed-guest-password");
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        when(userRepository.save(userCaptor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User saved = userService.registerGuest(passwordEncoder);
+
+        User captured = userCaptor.getValue();
+        assertThat(saved).isSameAs(captured);
+        assertThat(captured.getUsername()).matches("Guest#[0-9]+");
+        assertThat(captured.getEmail()).matches("guest_[0-9a-f\\-]+@guest\\.sketchbook\\.local");
+        assertThat(captured.getAvatarVariant()).isEqualTo("guest");
+        assertThat(captured.getAvatarColors()).containsExactly("#94A3B8", "#E2E8F0");
+        assertThat(captured.getRole()).isEqualTo(UserRole.GUEST);
+        assertThat(captured.getPasswordHash()).isEqualTo("hashed-guest-password");
     }
 
     @Test

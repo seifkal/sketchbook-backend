@@ -2,7 +2,6 @@ package com.sketchbook.sketchbook_backend.controller;
 
 import com.sketchbook.sketchbook_backend.dto.AuthDTO;
 import com.sketchbook.sketchbook_backend.dto.AuthRequestDTO;
-import com.sketchbook.sketchbook_backend.dto.UserDTO;
 import com.sketchbook.sketchbook_backend.dto.UserRequestDTO;
 import com.sketchbook.sketchbook_backend.entity.User;
 import com.sketchbook.sketchbook_backend.security.JwtService;
@@ -44,6 +43,15 @@ public class AuthController {
         );
 
         User user = userService.getUserByEmail(request.getEmail());
+        String token = jwtService.generateToken(user);
+
+        addJwtCookie(response, token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/guest")
+    public ResponseEntity<AuthDTO> guest(HttpServletResponse response) {
+        User user = userService.registerGuest(passwordEncoder);
         String token = jwtService.generateToken(user);
 
         addJwtCookie(response, token);

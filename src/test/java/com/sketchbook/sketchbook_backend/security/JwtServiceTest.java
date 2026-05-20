@@ -37,6 +37,24 @@ class JwtServiceTest {
     }
 
     @Test
+    void generateToken_includesGuestRole() {
+        JwtService jwtService = new JwtService();
+        ReflectionTestUtils.setField(jwtService, "secret", base64Secret());
+        ReflectionTestUtils.setField(jwtService, "jwtExpirationMs", 60000L);
+
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setUsername("Guest#123456");
+        user.setEmail("guest@example.com");
+        user.setRole(UserRole.GUEST);
+
+        String token = jwtService.generateToken(user);
+        String role = jwtService.extractClaim(token, claims -> claims.get("role", String.class));
+
+        assertThat(role).isEqualTo("GUEST");
+    }
+
+    @Test
     void isTokenValid_returnsFalseForDifferentUser() {
         JwtService jwtService = new JwtService();
         ReflectionTestUtils.setField(jwtService, "secret", base64Secret());
