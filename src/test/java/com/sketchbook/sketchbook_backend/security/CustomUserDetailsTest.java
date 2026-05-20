@@ -10,15 +10,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CustomUserDetailsTest {
 
     @Test
-    void getAuthorities_returnsRoleAuthority() {
+    void getAuthorities_returnsUserRoleAuthority() {
         User user = new User();
-        user.setRole(UserRole.ADMIN);
+        user.setRole(UserRole.USER);
 
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
         assertThat(userDetails.getAuthorities())
                 .extracting(GrantedAuthority::getAuthority)
-                .containsExactly("ROLE_ADMIN");
+                .containsExactly("ROLE_USER");
+    }
+
+    @Test
+    void getAuthorities_returnsGuestRoleAuthority() {
+        User user = new User();
+        user.setRole(UserRole.GUEST);
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        assertThat(userDetails.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly("ROLE_GUEST");
     }
 
     @Test
@@ -31,5 +43,15 @@ class CustomUserDetailsTest {
         assertThat(userDetails.getAuthorities())
                 .extracting(GrantedAuthority::getAuthority)
                 .containsExactly("ROLE_USER");
+    }
+
+    @Test
+    void getAuthorities_doesNotReturnAdminAuthorityYet() {
+        User user = new User();
+        user.setRole(UserRole.ADMIN);
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        assertThat(userDetails.getAuthorities()).isEmpty();
     }
 }

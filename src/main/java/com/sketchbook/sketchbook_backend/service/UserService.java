@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 
 @Service
@@ -38,6 +39,18 @@ public class UserService {
         user.setAvatarColors(avatarColors);
         user.setRole(UserRole.USER);
         user.setPasswordHash(passwordEncoder.encode(password));
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User registerGuest(PasswordEncoder passwordEncoder) {
+        User user = new User();
+        user.setUsername(generateGuestUsername());
+        user.setEmail("guest_" + UUID.randomUUID() + "@guest.sketchbook.local");
+        user.setAvatarVariant("guest");
+        user.setAvatarColors(List.of("#94A3B8", "#E2E8F0"));
+        user.setRole(UserRole.GUEST);
+        user.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
         return userRepository.save(user);
     }
 
@@ -108,6 +121,17 @@ public class UserService {
         }
 
         return userRepository.save(user);
+    }
+
+    private String generateGuestUsername() {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String username = "Guest#" + ThreadLocalRandom.current().nextInt(100000, 1000000);
+            if (!userRepository.existsByUsername(username)) {
+                return username;
+            }
+        }
+
+        return "Guest#" + Long.toUnsignedString(UUID.randomUUID().getMostSignificantBits());
     }
 
 }
