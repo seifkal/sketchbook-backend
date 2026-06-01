@@ -1,0 +1,10 @@
+target/
+.mvn/
+.git/
+.github/
+uploads/
+.env
+*.log
+*.tmp
+*.class
+.DS_Store
