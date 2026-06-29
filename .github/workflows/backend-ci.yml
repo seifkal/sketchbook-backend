@@ -64,9 +64,10 @@ jobs:
         with:
           context: .
           push: true
+          # commit-SHA tag = unique/traceable; latest = moving "newest" pointer
           tags: |
-            ${{ env.IMAGE }}:${{ github.sha }}    # unique, traceable tag
-            ${{ env.IMAGE }}:latest               # moving "newest" tag
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
 
   # ── Job 3: deploy (only on a real merge to main) ──
   # Skips cleanly until the Render secrets are configured, so the
